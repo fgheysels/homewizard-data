@@ -5,3 +5,19 @@ This is done because the (free) Homewizard App only keeps track of the data from
 
 # Components
 
+
+# Deployment
+
+## Deploy InfluxDB
+
+Apply the `deployment.yaml` file that can be found in the `./influxdb` folder.  This deployment will deploy influxdb in the `influxdb` namespace.
+
+Deploy using this command:
+
+```
+kubectl apply -f deployment.yaml
+```
+
+## Data Retriever
+
+The Data Retriever component is responsible for retrieving the Homewizard data and store it in the InfluxDB database.

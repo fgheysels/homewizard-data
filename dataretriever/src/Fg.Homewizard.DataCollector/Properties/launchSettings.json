@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Fg.Homewizard.DataCollector": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "HomeWizard__P1HostName": "p1meter-015AB0"
+      }
+    }
+  }
+}
