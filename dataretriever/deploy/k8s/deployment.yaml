@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homewizard-datacollector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homewizard-datacollector
+  template:
+    metadata:
+      labels:
+        app: homewizard-datacollector
+    spec:
+      hostNetwork: true # allows to connect to the host-network and detect devices via mdns
+      dnsPolicy: 'ClusterFirstWithHostNet' # required to be able to connect to hosts inside and outside the K8S cluster
+      containers:
+      - name: datacollector
+        image: fgheysels/homewizard-datacollector:0.0.14-arm32-preview1
+        env:
+        - name: RequestIntervalInMinutes
+          value: "10"
+        - name: Logging__LogLevel__Default
+          value: Information
+        - name: HomeWizard__P1HostName
+          value: p1meter-015AB0
+        - name: InfluxDb__InfluxDbAddress
+          value: http://influxdb.influxdb:8086  # namespacename.servicename:port
+        - name: InfluxDb__DatabaseName
+          value: home_energy

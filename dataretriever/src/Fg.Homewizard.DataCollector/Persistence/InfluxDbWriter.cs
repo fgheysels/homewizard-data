@@ -41,10 +41,11 @@ namespace Fg.Homewizard.DataCollector.Persistence
             await _lock.WaitAsync();
             try
             {
-                HttpRequestMessage writeRequest = new HttpRequestMessage(HttpMethod.Post, $"/write?db={_databaseName}&precision=s");
+                HttpRequestMessage writeRequest =
+                    new HttpRequestMessage(HttpMethod.Post, $"/write?db={_databaseName}&precision=s");
 
                 string lineProtocolMessage = ConvertMeasurementToLineProtocol(measurement);
-
+                _logger.LogInformation(lineProtocolMessage);
                 writeRequest.Content = new StringContent(lineProtocolMessage);
 
                 var response = await _httpClient.SendAsync(writeRequest);
@@ -53,7 +54,8 @@ namespace Fg.Homewizard.DataCollector.Persistence
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
 
-                    _logger.LogError($"Failed to write measurements contents to InfluxDb on {_httpClient.BaseAddress.ToString()}:");
+                    _logger.LogError(
+                        $"Failed to write measurements contents to InfluxDb on {_httpClient.BaseAddress.ToString()}:");
                     _logger.LogError($"Reason: {responseContent}");
                     _logger.LogDebug(lineProtocolMessage);
 
@@ -61,6 +63,11 @@ namespace Fg.Homewizard.DataCollector.Persistence
                 }
 
                 return new InfluxDbWriteResult(true, string.Empty);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unexpected error while writing to InfluxDb");
+                return new InfluxDbWriteResult(false, exception.Message);
             }
             finally
             {

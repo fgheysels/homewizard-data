@@ -18,6 +18,30 @@ Deploy using this command:
 kubectl apply -f deployment.yaml
 ```
 
+### Create database
+
+Log in to the influxdb pod:
+
+```
+kubectl exec -n influxdb --stdin --tty influxdb-0 -- /bin/bash
+```
+
+After the above command, you're in the bash shell inside the influxdb container.
+Enter the influx command shell by executing `influx`.
+At the `influx` command shell, execute the following command to create a database:
+
+```
+> CREATE DATABASE "home_energy" WITH DURATION 10000d
+```
+
+Verify if the database is now availabe via this command:
+
+```
+show databases
+```
+
+> Ideally, this is done via init-scripts
+
 ## Build and run Data Retriever
 
 The Data Retriever component is responsible for retrieving the Homewizard data and store it in the InfluxDB database.
@@ -70,3 +94,11 @@ docker buildx build . -f .\Dockerfile-arm32 -t homewizard-datacollector:<tag>
 - Push the image to the repository `docker push fgheysels/homewizard-datacollector:0.0.1`
 
 - Pull image `docker pull docker.io/fgheysels/homewizard-datacollector:0.0.1`
+
+## Deploy to Kubernetes
+
+Deploy the component on a Kubernetes cluster by simply deploying the deployment manifest.
+
+```
+kubectl apply -f .\deploy\k8s\deployment.yml -n homewizard-collector
+```

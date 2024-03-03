@@ -30,9 +30,11 @@ namespace Fg.Homewizard.DataCollector
 
             var logger = loggerFactory.CreateLogger<Program>();
 
+            var requestIntervalInMinutes = configuration.GetValue<int>("RequestIntervalInMinutes", 60);
+            
             while (cts.IsCancellationRequested == false)
             {
-                await Task.Delay(DetermineWaitTime(), cts.Token);
+                await Task.Delay(DetermineWaitTime(TimeSpan.FromMinutes(requestIntervalInMinutes), logger), cts.Token);
 
                 if (cts.IsCancellationRequested == false)
                 {
@@ -48,12 +50,15 @@ namespace Fg.Homewizard.DataCollector
             }
         }
 
-        private static TimeSpan DetermineWaitTime()
+        private static TimeSpan DetermineWaitTime(TimeSpan requestInterval, ILogger logger)
         {
             DateTime currentTime = DateTime.Now;
-            DateTime nextHour = currentTime.AddHours(1);
 
-            return new DateTime(nextHour.Year, nextHour.Month, nextHour.Day, nextHour.Hour, 0, 0) - currentTime;
+            TimeSpan waitTime = new TimeSpan(requestInterval.Ticks - (currentTime.Ticks % requestInterval.Ticks));
+            
+            logger.LogInformation($"Next Measurement retrieval will happen at {currentTime.Add(waitTime).ToString("yyyy-MM-dd HH:mm:ss")}");
+
+            return waitTime;
         }
 
         private static async Task<HomeWizardDevice> GetHomeWizardDevice(IConfiguration configuration, ILoggerFactory loggerFactory)
