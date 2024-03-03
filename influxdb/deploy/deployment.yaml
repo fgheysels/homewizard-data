@@ -4,6 +4,29 @@ kind: Namespace
 metadata:
     name: influxdb
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: influxdb-data-pv
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /var/lib/influxdb
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - raspberrypi
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -29,18 +52,21 @@ spec:
                   - containerPort: 8086
                     name: influxdb
                 volumeMounts:
-                  - mountPath: /var/lib/influxdb2
-                    name: data
+                  - mountPath: /var/lib/influxdb
+                    name: influxdb-data
     volumeClaimTemplates:
-      - metadata:
-            name: data
-            namespace: influxdb
-        spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-                requests:
-                    storage: 1G
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: influxdb-data
+        namespace: influxdb
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 2G
 ---
 apiVersion: v1
 kind: Service
