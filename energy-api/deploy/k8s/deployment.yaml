@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homewizard-energy-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homewizard-energy-api
+  template:
+    metadata:
+      labels:
+        app: homewizard-energy-api
+    spec:
+      containers:
+      - name: energy-api
+        image: fgheysels/homewizard-energy-api:0.0.3-arm32-preview
+        env:
+        - name: Logging__LogLevel__Default
+          value: Information
+        - name: InfluxDb__InfluxDbAddress
+          value: http://influxdb.influxdb:8086  # namespacename.servicename:port
+        - name: InfluxDb__DatabaseName
+          value: home_energy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homewizard-energy-api-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: homewizard-energy-api
+  ports:
+    - port: 8080
+# ---
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: homewizard-energy-api-rewriterule
+# spec:
+#   replacePathRegex:
+#     regex: "^/energy-api/(.*)"
+#     replacement: "/api/$1"
+# ---
+# apiVersion: traefik.io/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: homewizard-energy-api-http
+# spec:
+#   entryPoints:
+#   - web
+#   routes:
+#   - match: PathPrefix(`/energy-api`)
+#     kind: Rule
+#     middlewares:
+#     - name: homewizard-energy-api-rewriterule
+#     services:
+#     - kind: Service
+#       name: homewizard-energy-api-svc
+#       port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homewizard-energy-api-http
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homewizard-energy-api-svc
+            port:
+              number: 8080
+  # rules:
+  # - http:
+  #     paths:
+  #     - path: /energy-api(/|$)(.*)
+  #       pathType: ImplementationSpecific
+  #       backend:
+  #         service:
+  #           name: 
+  #           port:
+  #             number: 8080
