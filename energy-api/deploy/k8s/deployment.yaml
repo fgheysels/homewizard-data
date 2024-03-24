@@ -14,11 +14,11 @@ spec:
     spec:
       containers:
       - name: energy-api
-        image: fgheysels/homewizard-energy-api:0.0.3-arm32-preview
+        image: fgheysels/homewizard-energy-api:0.0.8-arm32-preview
         env:
         - name: Logging__LogLevel__Default
           value: Information
-        - name: InfluxDb__InfluxDbAddress
+        - name: InfluxDb__InfluxDbUrl
           value: http://influxdb.influxdb:8086  # namespacename.servicename:port
         - name: InfluxDb__DatabaseName
           value: home_energy
