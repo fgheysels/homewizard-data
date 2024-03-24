@@ -1,0 +1,6 @@
+@Fg.Homewizard.EnergyApi_HostAddress = http://localhost:5144
+
+GET {{Fg.Homewizard.EnergyApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
