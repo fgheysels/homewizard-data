@@ -31,9 +31,16 @@ namespace Fg.Homewizard.EnergyApi.Clients
 
             var response = await _httpClient.PostAsync($"{_settings.InfluxDbUrl}/query", formContent);
 
+            if (response.IsSuccessStatusCode == false)
+            {
+                _logger.LogError(await response.Content.ReadAsStringAsync());
+            }
+
             response.EnsureSuccessStatusCode();
 
             var rawContent = await response.Content.ReadAsStringAsync();
+
+
 
             return JsonSerializer.Deserialize<InfluxQlResults>(rawContent, SerializerOptions);
         }
