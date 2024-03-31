@@ -76,16 +76,5 @@ namespace Fg.Homewizard.EnergyApi.Infra
         }
 
         private static readonly string ListSeparator =  CultureInfo.CurrentCulture.TextInfo.ListSeparator;
-
-        //private void WriteHeader(StreamWriter writer)
-        //{
-        //    writer.WriteLine($"Timestamp{ListSeparator}PowerImportReading{ListSeparator}PowerExportReading{ListSeparator}PowerImport{ListSeparator}PowerExport");
-        //}
-
-        //private void WriteItem(PowerUsage powerUsage, StreamWriter writer)
-        //{
-        //    writer.WriteLine(
-        //        $"{powerUsage.Timestamp}{ListSeparator}{powerUsage.PowerImportReading}{ListSeparator}{powerUsage.PowerExportReading}{ListSeparator}{powerUsage.PowerImport}{ListSeparator}{powerUsage.PowerExport}");
-        //}
     }
 }

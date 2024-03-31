@@ -28,8 +28,6 @@ namespace Fg.Homewizard.EnergyApi.Services
 
             var series = await _influxDbReader.QueryQLAsync(influxQuery);
 
-            _logger.LogInformation("Query executed");
-
             var results = new List<PowerUsage>();
 
             var electricitySerie = series.Results.First().Series.First();

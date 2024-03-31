@@ -40,8 +40,6 @@ namespace Fg.Homewizard.EnergyApi.Clients
 
             var rawContent = await response.Content.ReadAsStringAsync();
 
-
-
             return JsonSerializer.Deserialize<InfluxQlResults>(rawContent, SerializerOptions);
         }
     }
