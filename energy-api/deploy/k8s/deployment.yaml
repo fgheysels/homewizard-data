@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homewizard-energy-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homewizard-energy-api
+  template:
+    metadata:
+      labels:
+        app: homewizard-energy-api
+    spec:
+      containers:
+      - name: energy-api
+        image: fgheysels/homewizard-energy-api:1.0.0-arm32
+        env:
+        - name: Logging__LogLevel__Default
+          value: Information
+        - name: InfluxDb__InfluxDbUrl
+          value: http://influxdb.influxdb:8086  # namespacename.servicename:port
+        - name: InfluxDb__DatabaseName
+          value: home_energy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homewizard-energy-api-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: homewizard-energy-api
+  ports:
+    - port: 8080
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: homewizard-energy-api-rewriterule
+spec:
+  replacePathRegex:
+    regex: "^/energy-api/(.*)"
+    replacement: "/api/$1"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homewizard-energy-api-http
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/energy-api/`)
+      kind: Rule
+      middlewares:
+        - name: homewizard-energy-api-rewriterule
+      services:
+        - kind: Service
+          name: homewizard-energy-api-svc
+          port: 8080
