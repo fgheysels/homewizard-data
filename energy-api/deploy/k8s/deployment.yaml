@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: energy-api
-        image: fgheysels/homewizard-energy-api:0.0.14-arm32-preview
+        image: fgheysels/homewizard-energy-api:1.0.0-arm32
         env:
         - name: Logging__LogLevel__Default
           value: Information
@@ -59,22 +59,3 @@ spec:
         - kind: Service
           name: homewizard-energy-api-svc
           port: 8080
-### Below is a very simple working ingress definition
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: homewizard-energy-api-http
-#   annotations:
-#     traefik.ingress.kubernetes.io/router.entrypoints: web
-# spec:
-#   rules:
-#   - http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: homewizard-energy-api-svc
-#             port:
-#               number: 8080
