@@ -9,13 +9,11 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-RUN pwd
-RUN ls -l
+
 COPY ["Fg.Homewizard.EnergyApi.csproj", "./"]
 RUN dotnet restore "./Fg.Homewizard.EnergyApi.csproj"
 COPY . .
-RUN pwd
-RUN ls -l
+
 # WORKDIR "/src/Fg.Homewizard.EnergyApi"
 RUN dotnet build "./Fg.Homewizard.EnergyApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

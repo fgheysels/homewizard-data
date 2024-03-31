@@ -1,9 +1,8 @@
 
 using Fg.Homewizard.EnergyApi.Clients;
 using Fg.Homewizard.EnergyApi.Configuration;
-using Microsoft.Extensions.Configuration;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.AspNetCore.SwaggerUI;
+using Fg.Homewizard.EnergyApi.Infra;
+using Fg.Homewizard.EnergyApi.Services;
 
 namespace Fg.Homewizard.EnergyApi
 {
@@ -15,18 +14,19 @@ namespace Fg.Homewizard.EnergyApi
 
             // Add services to the container.
             builder.Services.Configure<InfluxDbSettings>(builder.Configuration.GetSection("InfluxDb"));
-
+            
             builder.Services.AddHttpClient<InfluxDbReader>();
             builder.Services.AddScoped<InfluxDbReader>();
+            builder.Services.AddScoped<EnergyConsumptionRetriever>();
 
             builder.Services.AddRouting(options => { options.LowercaseUrls = true; });
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options => options.OutputFormatters.Add(new CsvFormatter()));
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            
             var app = builder.Build();
-
+            
             // Configure the HTTP request pipeline.
 
             app.UseSwagger(swaggerOptions =>
@@ -42,7 +42,6 @@ namespace Fg.Homewizard.EnergyApi
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

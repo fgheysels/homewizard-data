@@ -1,5 +1,4 @@
-﻿using Fg.Homewizard.EnergyApi.Clients;
-using Microsoft.AspNetCore.Http;
+﻿using Fg.Homewizard.EnergyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fg.Homewizard.EnergyApi.Controllers
@@ -8,29 +7,22 @@ namespace Fg.Homewizard.EnergyApi.Controllers
     [ApiController]
     public class ElectricityController : ControllerBase
     {
-        private readonly InfluxDbReader _influxInfluxDbReader;
+        private readonly EnergyConsumptionRetriever _energyService;
         private readonly ILogger<ElectricityController> _logger;
 
-        public ElectricityController(InfluxDbReader influxDbReader, ILogger<ElectricityController> logger)
+        public ElectricityController(EnergyConsumptionRetriever energyService, ILogger<ElectricityController> logger)
         {
-            _influxInfluxDbReader = influxDbReader;
+            _energyService = energyService;
             _logger = logger;
         }
 
         [HttpGet("daily")]
+        [Produces( "application/json", "text/csv")]
         public async Task<IActionResult> GetDailyElectricityData(DateTimeOffset fromDate, DateTimeOffset toDate)
         {
-            fromDate = fromDate.AddDays(-1);
+            var result = await _energyService.GetElectricityConsumptionForPeriodAsync(fromDate, toDate);
 
-            string influxQuery =
-                "SELECT time, last(totalpower_import_kwh) AS power_import, last(totalpower_export_kwh) AS power_import " +
-                " FROM electricity " +
-                $" WHERE time >= '{fromDate.Date:yyyy-MM-ddTHH:mm:ss.FFFZ}' and time <= '{toDate.Date:yyyy-MM-ddTHH:mm:ss.FFFZ}' " +
-                " GROUP BY time(24h)";
-            _logger.LogInformation(influxQuery);
-            var results = await _influxInfluxDbReader.QueryQLAsync(influxQuery);
-
-            return Ok(results);
+            return Ok(result);
         }
     }
 }
