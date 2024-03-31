@@ -81,3 +81,29 @@ spec:
     selector:
         app: influxdb
     type: ClusterIP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: influxdb-rewriterule
+spec:
+  replacePathRegex:
+    regex: "^/influxdb/(.*)"
+    replacement: "/$1"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homewizard-influxdb-http
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/influxdb/`)
+      kind: Rule
+      middlewares:
+        - name: influxdb-rewriterule
+      services:
+        - kind: Service
+          name: influxdb
+          port: 8086
