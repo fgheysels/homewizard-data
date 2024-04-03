@@ -1,10 +1,22 @@
 # Introduction
 
-This project consists of a number of components that are used to retrieve and store data collected by a Homewizard device.  The data that is stored is exposed via a simple API.
-This is done because the (free) Homewizard App only keeps track of the data from the last 12 months.
+The 'homewizard-data' project collects and store energy consumption data (electricity, gas) that is collected by a Homewizard device for an extended period of time. This is done because the (free) Homewizard App only keeps track of the data from the last 12 months.
+The data that is stored, is exposed via a simple API.
+
+One of the goals of this project is to see the effect on my electricity bill should I have a home-battery.  This is done by using the stored electricity consumption and returned generated electricity data to simulate different scenario's in an Excel worksheet.  
 
 # Components
 
+![component overview](static/img/overview.jpg)
+
+A Homewizard P1 meter is reading out electricity power meter.
+The `datacollector` component that is running in a kubernetes cluster is reading out the P1 meter on a timely interval and stores the readings in an `influxdb` database which is also running in the same kubernetes cluster (but in a different namespace).
+The data that is stored in `influxdb` can be accessed via the `energy-api`. 
+The `energy-api` is exposed via a `traefik` ingress which makes it possible that clients running outside the kubernetes cluster can access that API.
+
+# How to use the collected data in Excel
+
+With MS Excel, it is possible to retrieve data from a Web API.
 
 # Build and Deploy
 
