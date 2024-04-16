@@ -16,7 +16,42 @@ The `energy-api` is exposed via a `traefik` ingress which makes it possible that
 
 # How to use the collected data in Excel
 
-With MS Excel, it is possible to retrieve data from a Web API.
+With MS Excel, it is possible to retrieve data from a Web API.  This makes it possible to directly query the energy-api from Excel and import the returned data in the worksheet in a tabular format.
+
+## Fetch data from the energy API
+
+Fetch the data via the `From Web` option on the `Data` pane in Excel.
+
+![Fetch data from web](./static/img/excel_fetch_data.jpg)
+
+Enter the URL at which the API is listening, and make sure to specify the `fromDate` and `toDate` query parameters.
+Traefik is configured to have an ingress for the API at `energy-api`, so the URL can look like this:
+
+```
+http://192.168.1.20/energy-api/electricity/daily?fromDate=2024-03-10&toDate=2024-04-16
+```
+
+After confirming the data source, a new dialog pops up that allows you to transform the data:
+
+![Transform Data](./static/img/excel_convert_data.jpg)
+
+Click on the `To Table Convert` button, and specify that
+
+![Table Convert](./static/img/excel_to_table.jpg)
+
+Go with the default values; make sure that no delimiter is specified.
+
+On the dialog that now appears, the data can be transformed:
+
+![Transform Data](./static/img/excel_convert_data2.jpg)
+Click on the button in the column-header that allows you to expand each record.  On the dialog that appears, select all columns and click OK.
+
+You'll now see that that the data is available in a tabular format
+
+![Tabular data](./static/img/excel_expanded_data.jpg)
+The data can be loaded into Excel.  This is done by clicking on the 'Close & Load' button.
+
+The data is now available in Excel and can be used to do all kind of calculations with it.
 
 # Build and Deploy
 
