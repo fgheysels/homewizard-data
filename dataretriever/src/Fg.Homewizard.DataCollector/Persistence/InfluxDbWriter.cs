@@ -66,7 +66,7 @@ namespace Fg.Homewizard.DataCollector.Persistence
                     new HttpRequestMessage(HttpMethod.Post, $"/write?db={_databaseName}&precision=s");
 
                 string lineProtocolMessage = ConvertMeasurementToLineProtocol(seriesName, measurement, fieldValueMap);
-                _logger.LogInformation(lineProtocolMessage);
+
                 writeRequest.Content = new StringContent(lineProtocolMessage);
 
                 var response = await _httpClient.SendAsync(writeRequest);
@@ -98,14 +98,21 @@ namespace Fg.Homewizard.DataCollector.Persistence
 
         private static string ConvertMeasurementToLineProtocol(string measurementName, Measurement measurement, IEnumerable<(string fieldName, Func<Measurement, double> measurementSelector)> fieldValueMap)
         {
-            string lineProtocol = $"{measurementName},homewizard_device={measurement.HomewizardDeviceId}";
+            if (fieldValueMap.Any() == false)
+            {
+                throw new ArgumentException("At least one fieldValue-mapping must be specified.", nameof(fieldValueMap));
+            }
+
+            string lineProtocol = $"{measurementName},homewizard_device={measurement.HomewizardDeviceId} ";
 
             foreach (var map in fieldValueMap)
             {
-                lineProtocol += FormattableString.Invariant($" {map.fieldName}={map.measurementSelector(measurement)}");
+                lineProtocol += FormattableString.Invariant($"{map.fieldName}={map.measurementSelector(measurement)},");
             }
 
-            lineProtocol += $" {measurement.Timestamp.ToUnixTimeSeconds()}";
+            lineProtocol = lineProtocol.Substring(0, lineProtocol.Length - 1);
+
+            lineProtocol += FormattableString.Invariant($" {measurement.Timestamp.ToUnixTimeSeconds()}");
 
             return lineProtocol;
         }
