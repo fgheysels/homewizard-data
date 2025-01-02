@@ -30,24 +30,36 @@ namespace Fg.Homewizard.EnergyApi.Services
 
             var results = new List<PowerUsage>();
 
-            var electricitySerie = series.Results.First().Series.First();
-
-            for (int i = 0; i < electricitySerie.Values.Count(); i++)
+            if (series.ContainsData)
             {
-                PowerUsage usage = new PowerUsage()
-                {
-                    Timestamp = ((JsonElement)electricitySerie.Values.ElementAt(i).ElementAt(0)).GetDateTime(),
-                    PowerImportReading = ((JsonElement)electricitySerie.Values.ElementAt(i).ElementAt(1)).GetDecimal(),
-                    PowerExportReading = ((JsonElement)electricitySerie.Values.ElementAt(i).ElementAt(2)).GetDecimal()
-                };
+                var electricitySerie = series.Results.First().Series.First();
 
-                if (i != 0)
+                for (int i = 0; i < electricitySerie.Values.Count(); i++)
                 {
-                    usage.PowerExport = usage.PowerExportReading - results[i - 1].PowerExportReading;
-                    usage.PowerImport = usage.PowerImportReading - results[i - 1].PowerImportReading;
+                    var dataEntry = electricitySerie.Values.ElementAt(i);
+
+                    var dateTimeObject = dataEntry.ElementAt(0);
+                    var powerImportObject = dataEntry.ElementAt(1);
+                    var powerExportObject = dataEntry.ElementAt(2);
+
+                    PowerUsage usage = new PowerUsage
+                    {
+                        Timestamp = ((JsonElement)dateTimeObject).GetDateTime(),
+                        PowerImportReading = powerImportObject != null ? ((JsonElement)powerImportObject).GetDecimal() : null,
+                        PowerExportReading = powerExportObject != null ? ((JsonElement)powerExportObject).GetDecimal() : null
+                    };
+
+                    if (i != 0 &&
+                        usage.PowerImportReading != null && usage.PowerExportReading != null &&
+                        results[i - 1].PowerImportReading != null && results[i - 1].PowerExportReading != null)
+                    {
+                        usage.PowerExport = usage.PowerExportReading.Value - results[i - 1].PowerExportReading.Value;
+                        usage.PowerImport = usage.PowerImportReading.Value - results[i - 1].PowerImportReading.Value;
+                    }
+
+                    results.Add(usage);
+
                 }
-
-                results.Add(usage);
             }
 
             return results;
