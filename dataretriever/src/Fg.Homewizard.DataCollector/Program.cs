@@ -40,11 +40,18 @@ namespace Fg.Homewizard.DataCollector
                 {
                     var measurement = await service.GetCurrentMeasurementsAsync();
 
-                    var writeResult = await influxDbWriter.StoreMeasurement(measurement);
+                    var writeElectricityResult = await influxDbWriter.StoreElectricityMeasurementAsync(measurement);
 
-                    if (writeResult.Success == false)
+                    if (writeElectricityResult.Success == false)
                     {
-                        logger.LogError("InfluxDb write failed: " + writeResult.Message);
+                        logger.LogError("InfluxDb write for electricity failed: " + writeElectricityResult.Message);
+                    }
+
+                    var writeGasResult = await influxDbWriter.StoreGasMeasurementAsync(measurement);
+
+                    if (writeGasResult.Success == false)
+                    {
+                        logger.LogError("InfluxDb write for gas failed: " + writeGasResult.Message);
                     }
                 }
             }

@@ -36,7 +36,28 @@ namespace Fg.Homewizard.DataCollector.Persistence
             _logger = logger;
         }
 
-        public async Task<InfluxDbWriteResult> StoreMeasurement(Measurement measurement)
+        public async Task<InfluxDbWriteResult> StoreElectricityMeasurementAsync(Measurement measurement)
+        {
+            var fieldValueMap = new (string, Func<Measurement, double>)[]
+            {
+                ("totalpower_import_kwh", m => m.TotalPowerImportInKwh),
+                ("totalpower_export_kwh", m => m.TotalPowerExportInKwh)
+            };
+
+            return await StoreMeasurementAsync("electricity", measurement, fieldValueMap);
+        }
+
+        public async Task<InfluxDbWriteResult> StoreGasMeasurementAsync(Measurement measurement)
+        {
+            var fieldValueMap = new (string, Func<Measurement, double>)[]
+            {
+                ("totalgas_m3", m=>m.TotalGasInM3)
+            };
+
+            return await StoreMeasurementAsync("gas", measurement, fieldValueMap);
+        }
+
+        private async Task<InfluxDbWriteResult> StoreMeasurementAsync(string seriesName, Measurement measurement, IEnumerable<(string fieldName, Func<Measurement, double> measurementSelector)> fieldValueMap)
         {
             await _lock.WaitAsync();
             try
@@ -44,7 +65,7 @@ namespace Fg.Homewizard.DataCollector.Persistence
                 HttpRequestMessage writeRequest =
                     new HttpRequestMessage(HttpMethod.Post, $"/write?db={_databaseName}&precision=s");
 
-                string lineProtocolMessage = ConvertMeasurementToLineProtocol(measurement);
+                string lineProtocolMessage = ConvertMeasurementToLineProtocol(seriesName, measurement, fieldValueMap);
                 _logger.LogInformation(lineProtocolMessage);
                 writeRequest.Content = new StringContent(lineProtocolMessage);
 
@@ -75,12 +96,18 @@ namespace Fg.Homewizard.DataCollector.Persistence
             }
         }
 
-        private string ConvertMeasurementToLineProtocol(Measurement measurement)
+        private static string ConvertMeasurementToLineProtocol(string measurementName, Measurement measurement, IEnumerable<(string fieldName, Func<Measurement, double> measurementSelector)> fieldValueMap)
         {
-            string electricity =
-                FormattableString.Invariant($"electricity,homewizard_device={measurement.HomewizardDeviceId} totalpower_import_kwh={measurement.TotalPowerImportInKwh},totalpower_export_kwh={measurement.TotalPowerExportInKwh} {measurement.Timestamp.ToUnixTimeSeconds()}");
+            string lineProtocol = $"{measurementName},homewizard_device={measurement.HomewizardDeviceId}";
 
-            return electricity;
+            foreach (var map in fieldValueMap)
+            {
+                lineProtocol += FormattableString.Invariant($" {map.fieldName}={map.measurementSelector(measurement)}");
+            }
+
+            lineProtocol += $" {measurement.Timestamp.ToUnixTimeSeconds()}";
+
+            return lineProtocol;
         }
 
         /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
