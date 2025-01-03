@@ -9,9 +9,13 @@ namespace Fg.Homewizard.DataCollector
 {
     internal class Program
     {
+        protected Program()
+        {
+        }
+
         static async Task Main(string[] args)
         {
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, e) =>
             {
                 Console.WriteLine("Canceling...");
@@ -26,12 +30,12 @@ namespace Fg.Homewizard.DataCollector
 
             using var influxDbWriter = CreateInfluxDbWriter(configuration, loggerFactory);
 
-            HomeWizardService service = new HomeWizardService(homeWizard);
+            HomeWizardService service = new HomeWizardService(homeWizard, new HttpClient());
 
             var logger = loggerFactory.CreateLogger<Program>();
 
             var requestIntervalInMinutes = configuration.GetValue<int>("RequestIntervalInMinutes", 60);
-            
+
             while (cts.IsCancellationRequested == false)
             {
                 await Task.Delay(DetermineWaitTime(TimeSpan.FromMinutes(requestIntervalInMinutes), logger), cts.Token);
@@ -62,7 +66,7 @@ namespace Fg.Homewizard.DataCollector
             DateTime currentTime = DateTime.Now;
 
             TimeSpan waitTime = new TimeSpan(requestInterval.Ticks - (currentTime.Ticks % requestInterval.Ticks));
-            
+
             logger.LogInformation($"Next Measurement retrieval will happen at {currentTime.Add(waitTime).ToString("yyyy-MM-dd HH:mm:ss")}");
 
             return waitTime;
@@ -81,7 +85,7 @@ namespace Fg.Homewizard.DataCollector
 
             if (device == null)
             {
-                throw new Exception("No HomeWizard device found in network with name " + settings.P1HostName);
+                throw new ConfigurationErrorsException("No HomeWizard device found in network with name " + settings.P1HostName);
             }
 
             return device;
