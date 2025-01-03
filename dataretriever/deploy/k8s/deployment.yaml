@@ -16,7 +16,7 @@ spec:
       dnsPolicy: 'ClusterFirstWithHostNet' # required to be able to connect to hosts inside and outside the K8S cluster
       containers:
       - name: datacollector
-        image: fgheysels/homewizard-datacollector:0.0.14-arm32-preview1
+        image: fgheysels/homewizard-datacollector:0.0.18-arm32-preview
         env:
         - name: RequestIntervalInMinutes
           value: "10"
