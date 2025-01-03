@@ -1,4 +1,5 @@
-﻿using Fg.HomeWizard.EnergyApi.Client;
+﻿using System.Globalization;
+using Fg.HomeWizard.EnergyApi.Client;
 using Microsoft.Extensions.Logging;
 
 namespace Fg.Homewizard.DataCollector.Persistence
@@ -96,6 +97,8 @@ namespace Fg.Homewizard.DataCollector.Persistence
             }
         }
 
+        private static readonly CultureInfo EuropeanCalendar = new CultureInfo("nl-BE");
+
         private static string ConvertMeasurementToLineProtocol(string measurementName, Measurement measurement, IEnumerable<(string fieldName, Func<Measurement, double> measurementSelector)> fieldValueMap)
         {
             if (fieldValueMap.Any() == false)
@@ -103,7 +106,7 @@ namespace Fg.Homewizard.DataCollector.Persistence
                 throw new ArgumentException("At least one fieldValue-mapping must be specified.", nameof(fieldValueMap));
             }
 
-            string lineProtocol = $"{measurementName},homewizard_device={measurement.HomewizardDeviceId} ";
+            string lineProtocol = $"{measurementName},homewizard_device={measurement.HomewizardDeviceId},year={measurement.Timestamp.Year},month={measurement.Timestamp.Month},day={measurement.Timestamp.Day},week={EuropeanCalendar.Calendar.GetWeekOfYear(measurement.Timestamp.LocalDateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday)},dayofweek={measurement.Timestamp.DayOfWeek} ";
 
             foreach (var map in fieldValueMap)
             {
