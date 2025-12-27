@@ -4,12 +4,12 @@ The Energy API is an API which exposes the Homewizard Energy data that is stored
 
 You can pull an existing image from [Dockerhub](https://hub.docker.com/r/fgheysels/homewizard-energy-api/tags).
 
-### Building for ARM32 devices
+### Building for ARM64 devices
 
 For detailed information, see the same section on the Data Retriever section.
 
 ```
-docker buildx build . -f .\Dockerfile-arm32 -t homewizard-energy-api:<tag>
+docker buildx build . --platform linux/arm64 -f .\Dockerfile-arm64 -t homewizard-energy-api:<tag>
 ```
 
 ### Push to dockerhub
@@ -33,7 +33,7 @@ kubectl apply -f .\deploy\k8s\deployment.yaml -n homewizard-data
 ```
 
 Before being able to deploy the deployment manifest, it is possible that some CRD's need to be installed first.
-This can be doen via
+This can be done via
 ```
 kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
 ```

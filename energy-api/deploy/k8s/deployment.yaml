@@ -1,7 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: homewizard-data
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: homewizard-energy-api
+  namespace: homewizard-data
 spec:
   replicas: 1
   selector:
@@ -14,7 +21,7 @@ spec:
     spec:
       containers:
       - name: energy-api
-        image: fgheysels/homewizard-energy-api:1.0.0-arm32
+        image: fgheysels/homewizard-energy-api:1.0.0-arm64
         env:
         - name: Logging__LogLevel__Default
           value: Information
@@ -27,6 +34,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: homewizard-energy-api-svc
+  namespace: homewizard-data
 spec:
   type: ClusterIP
   selector:
@@ -34,19 +42,21 @@ spec:
   ports:
     - port: 8080
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: homewizard-energy-api-rewriterule
+  namespace: homewizard-data
 spec:
   replacePathRegex:
     regex: "^/energy-api/(.*)"
     replacement: "/api/$1"
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: homewizard-energy-api-http
+  namespace: homewizard-data
 spec:
   entryPoints:
     - web
