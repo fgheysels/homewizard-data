@@ -1,7 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: homewizard-data
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: homewizard-datacollector
+  namespace: homewizard-data
 spec:
   replicas: 1
   selector:
@@ -16,7 +23,7 @@ spec:
       dnsPolicy: 'ClusterFirstWithHostNet' # required to be able to connect to hosts inside and outside the K8S cluster
       containers:
       - name: datacollector
-        image: fgheysels/homewizard-datacollector:0.0.18-arm32-preview
+        image: fgheysels/homewizard-datacollector:0.0.21-arm64
         env:
         - name: RequestIntervalInMinutes
           value: "10"

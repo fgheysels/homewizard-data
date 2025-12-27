@@ -7,9 +7,8 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish Fg.Homewizard.DataCollector.csproj -c Release -o Fg.Homewizard.DataCollector/out
 
-FROM mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim-arm32v7
+FROM mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim-arm64v8
 WORKDIR /app
 COPY --from=build-env /app/Fg.Homewizard.DataCollector/out ./
-COPY qemu-arm-static /usr/bin/qemu-arm-static
 
 ENTRYPOINT ["dotnet", "Fg.Homewizard.DataCollector.dll"]
