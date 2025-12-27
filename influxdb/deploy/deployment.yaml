@@ -14,7 +14,7 @@ spec:
   volumeMode: Filesystem
   accessModes:
   - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
     path: /var/lib/influxdb
@@ -26,6 +26,19 @@ spec:
           operator: In
           values:
           - raspberrypi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: influxdb-data-pvc
+  namespace: influxdb
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -45,28 +58,19 @@ spec:
             labels:
                 app: influxdb
         spec:
-            containers:
-              - image: influxdb:1.8.10
-                name: influxdb
-                ports:
-                  - containerPort: 8086
-                    name: influxdb
-                volumeMounts:
-                  - mountPath: /var/lib/influxdb
-                    name: influxdb-data
-    volumeClaimTemplates:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: influxdb-data
-        namespace: influxdb
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        volumeMode: Filesystem
-        resources:
-          requests:
-            storage: 2G
+          volumes:
+          - name: influxdb-data
+            persistentVolumeClaim:
+              claimName: influxdb-data-pvc
+          containers:
+          - image: influxdb:1.8.10
+            name: influxdb
+            ports:
+            - containerPort: 8086
+              name: influxdb
+            volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: influxdb-data
 ---
 apiVersion: v1
 kind: Service
@@ -82,19 +86,21 @@ spec:
         app: influxdb
     type: ClusterIP
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: influxdb-rewriterule
+  namespace: influxdb
 spec:
   replacePathRegex:
     regex: "^/influxdb/(.*)"
     replacement: "/$1"
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: homewizard-influxdb-http
+  namespace: influxdb
 spec:
   entryPoints:
     - web
@@ -103,6 +109,7 @@ spec:
       kind: Rule
       middlewares:
         - name: influxdb-rewriterule
+          namespace: influxdb
       services:
         - kind: Service
           name: influxdb
